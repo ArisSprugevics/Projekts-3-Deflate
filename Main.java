@@ -1,5 +1,9 @@
 // 191REB140 Āris Spruģevics 5. grupa
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLOutput;
 import java.util.Scanner;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,6 +12,9 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         String choiseStr;
         String sourceFile, resultFile, firstFile, secondFile;
+        String tempSource = "File1.html";
+        String tempResult = "CompressedFile";
+        String tempUncompressed = "Uncompressed1.html";
 
         loop: while (true) {
 
@@ -16,16 +23,16 @@ public class Main {
             switch (choiseStr) {
                 case "comp":
                     System.out.print("source file name: ");
-                    sourceFile = sc.next();
+                    sourceFile = tempSource;//sc.next();
                     System.out.print("archive name: ");
-                    resultFile = sc.next();
+                    resultFile = tempResult;//sc.next();
                     comp(sourceFile, resultFile);
                     break;
                 case "decomp":
                     System.out.print("archive name: ");
-                    sourceFile = sc.next();
+                    sourceFile = tempResult;//sc.next();
                     System.out.print("file name: ");
-                    resultFile = sc.next();
+                    resultFile = tempUncompressed;//sc.next();
                     decomp(sourceFile, resultFile);
                     break;
                 case "size":
@@ -35,9 +42,9 @@ public class Main {
                     break;
                 case "equal":
                     System.out.print("first file name: ");
-                    firstFile = sc.next();
+                    firstFile = tempSource;//sc.next();
                     System.out.print("second file name: ");
-                    secondFile = sc.next();
+                    secondFile = tempUncompressed;//sc.next();
                     System.out.println(equal(firstFile, secondFile));
                     break;
                 case "about":
@@ -49,8 +56,22 @@ public class Main {
         }
         sc.close();
     }
+
     public static void comp(String sourceFile, String resultFile) {
         // TODO: implement comp method
+        // LZ77
+        try {
+            FileInputStream fails = new FileInputStream(sourceFile);
+            String text = new String(fails.readAllBytes(), StandardCharsets.UTF_8);
+
+            String middle = LZ77.compress(text);
+
+
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+
     }
 
     public static void decomp(String sourceFile, String resultFile) {
@@ -109,4 +130,26 @@ public class Main {
         System.out.println("111RDB111 Ilze Programmētāja");
         System.out.println("111RDB111 Ilze Programmētāja");
     }
+
+}
+
+public class LZ77 { // TODO LZ77 class
+    private static final int WINDOW_SIZE = 32768;
+    private static final int LOOKAHEAD_SIZE = 20;
+    public static String compress(String input){
+        String output;
+        char[] matching;
+        int pos = 0;
+        while(pos < input.length()){
+            matching = findLongestMatch(input, pos);
+            output =
+        }
+    }
+    public static String decompress(String input){
+
+    }
+    public static char[] findLongestMatch(String input, int position){
+
+    }
+
 }
