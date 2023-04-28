@@ -1,13 +1,12 @@
 // 191REB140 Āris Spruģevics 5. grupa
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLOutput;
 import java.util.Objects;
 import java.util.Scanner;
-import java.io.FileInputStream;
-import java.io.IOException;
+
 public class Main {
     public static void main (String[] args){
         Scanner sc = new Scanner(System.in);
@@ -24,9 +23,9 @@ public class Main {
             switch (choiseStr) {
                 case "comp":
                     System.out.print("source file name: ");
-                    sourceFile = tempSource;//sc.next();
+                    sourceFile = sc.next();
                     System.out.print("archive name: ");
-                    resultFile = tempResult;//sc.next();
+                    resultFile = sc.next();
                     comp(sourceFile, resultFile);
                     break;
                 case "decomp":
@@ -62,15 +61,25 @@ public class Main {
         // TODO: implement comp method
         // LZ77
         try {
-            FileInputStream fails = new FileInputStream(sourceFile);
-            String text = new String(fails.readAllBytes(), StandardCharsets.UTF_8);
-
+            //FileInputStream fails = new FileInputStream(sourceFile);
+            //String text = new String(fails.readAllBytes());
+            StringBuilder builder =  new StringBuilder();
+            BufferedReader br = new BufferedReader(new FileReader(sourceFile));
+            String str;
+            while((str = br.readLine()) != null){
+                builder.append(str);
+                builder.append("\n");
+            }
+            String text = builder.toString();
+            System.out.println("base= " + text);
             String middle = LZ77.compress(text);
             String result = LZ77.decompress(middle);
             System.out.println("compressed= " + middle);
             System.out.println("decompressed= " + result);
-
-
+            FileOutputStream out = new FileOutputStream(resultFile);
+            out.write(result.getBytes());
+            out.close();
+            br.close();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
@@ -159,39 +168,61 @@ public class Main {
             return str1.toString();
         }
         public static String decompress(String input){
-            System.out.println("enters decompress");
             int start, end;
             int pos = 0;
             StringBuilder str1 = new StringBuilder();
             while(pos < input.length()){
-                System.out.println(pos);
-                System.out.println(input.charAt(pos));
+                //System.out.println(pos);
+                //System.out.println(input.charAt(pos));
                 if(input.charAt(pos) == '('){
                     int i = 1;
-                    while(i < 15){
-                        if(input.charAt(pos + i) == ')'){//TODO decompress LZ77
-                            String sortable = input.substring(pos,pos+i+1);
-                            sortable = sortable.replaceAll("[()]","");
-                            String[] numbers = sortable.split(",");
-                            start = pos - Integer.parseInt(numbers[0]);
-                            end = Integer.parseInt(numbers[1]);
-                            int j=0;
-                            System.out.println(sortable);
-                            while(j < end){
-                                str1.append(input.charAt(start+j));
-                                j++;
+                    while(i < 14){
+                        if(pos+i < input.length() && input.charAt(pos + i) == ')'){//TODO decompress LZ77
+                            String sortable = "";
+                            try{
+                                sortable = input.substring(pos,pos+i+1);
+                                sortable = sortable.replaceAll("[()]","");
+                                if(sortable.isEmpty()){
+                                    str1.append(input.charAt(pos));
+                                    pos = pos + 1;
+                                    break;
+                                }
+                                String[] numbers = sortable.split(",");
+                                start = str1.length() - Integer.parseInt(numbers[0]);
+                                end = Integer.parseInt(numbers[1]);
+                                int j=0;
+                                while(j < end){
+                                    str1.append(str1.charAt(start+j));
+                                    j++;
+                                }
+                                pos = pos + sortable.length()+2;
+                                break;
                             }
-                            pos = pos + sortable.length()+1;
-                            break;
+                            catch (Exception e){
+                                if(!sortable.isEmpty()){
+                                    str1.append("(");
+                                    str1.append(sortable);
+                                    str1.append(")");
+                                    pos = pos + sortable.length()+2;
+                                }
+                                else{
+                                    str1.append(input.charAt(pos));
+                                    pos = pos + 1;
+                                }
+                                break;
+                            }
+
                         }
-                        else if(input.charAt(pos + i) == '('){
+                        else if(pos+i < input.length() && input.charAt(pos + i) == '('){
+                            str1.append(input.charAt(pos));
                             pos++;
                             break;
                         }
                         else{
                             i++;
                         }
-                        if(i == 15){
+                        if(i == 14){
+                            str1.append(input.charAt(pos));
                             pos++;
                         }
                     }
